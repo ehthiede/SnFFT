@@ -1,5 +1,8 @@
 graft src
 
+include CHANGELOG.rst
 include README.rst
 
+global-exclude old_stuff/*
+global-exclude old_stuff
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
