@@ -4,10 +4,10 @@ import pickle
 import sys
 import pdb
 import time
-from utils import partitions
+from SnFFT.utils import partitions
 import numpy as np
-from young_tableau import FerrersDiagram
-from perm2 import sn
+from SnFFT.young_tableau import FerrersDiagram
+from SnFFT.perm2 import sn
 
 # TODO: make this a tiered dict?
 YOR_CACHE = {}
