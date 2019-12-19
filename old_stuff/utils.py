@@ -6,13 +6,8 @@ import pdb
 from functools import reduce
 from itertools import product
 import psutil
-from tqdm import tqdm
 import torch
 
-CUBE2_SIZE = 88179840
-FOURIER_SUBDIR = 'fourier'
-IRREP_SUBDIR = 'pickles'
-SPLIT_SUBDIR = 'split_or'
 
 def get_logger(fname=None, stream=True):
     str_fmt = '[%(asctime)s.%(msecs)03d] %(levelname)s %(module)s: %(message)s'
@@ -32,6 +27,7 @@ def get_logger(fname=None, stream=True):
 
     return logger
 
+
 def chunk(lst, n):
     '''
     Split the given lit into n approximately equal chunks
@@ -46,8 +42,10 @@ def chunk(lst, n):
             output[d].append(lst[-(d+1)])
         return output
 
+
 def sorted_partitions(n):
     return sorted(partitions, reverse=True)
+
 
 def partitions(n, start=1):
     '''
@@ -65,6 +63,7 @@ def partitions(n, start=1):
             parts.append(p + (i, ))
 
     return parts
+
 
 def weak_partitions(n, k):
     '''
@@ -91,9 +90,11 @@ def weak_partitions(n, k):
 
     return lst
 
+
 def partition_parts(partition):
     indiv_partitions = [partitions(p) for p in partition]
     return product(*indiv_partitions)
+
 
 def size_partition(weak_parts):
     cnt = 1
@@ -101,35 +102,6 @@ def size_partition(weak_parts):
         cnt *= len(partitions(p))
     return cnt
 
-def cube2_alphas():
-    '''
-    Returns the list of weak partitions of 8 into 3 buckets.
-    '''
-    return [
-        (2, 3, 3),
-        (4, 2, 2),
-        (3, 1, 4),
-        (3, 4, 1),
-        (1, 2, 5),
-        (1, 5, 2),
-        (0, 4, 4),
-        (5, 0, 3),
-        (5, 3, 0),
-        (6, 1, 1),
-        (2, 6, 0),
-        (2, 0, 6),
-        (0, 1, 7),
-        (0, 7, 1),
-        (8, 0, 0),
-    ]
-
-def cube2_irreps():
-    '''
-    Generator for all irreps of the 2x2 cube group
-    '''
-    for alpha in cube2_alphas():
-        for parts in partition_parts(alpha):
-            yield (alpha, parts)
 
 def check_memory(verbose=True):
     # return the memory usage in MB
@@ -139,17 +111,22 @@ def check_memory(verbose=True):
         print("Consumed {:.2f}mb memory".format(mem))
     return mem
 
+
 def gcd(a, b):
     while b:
-        a, b = b, a%b
+        a, b = b, a % b
     return a
 
 # Source: https://stackoverflow.com/a/147539
+
+
 def _lcm(a, b):
     return a*b // gcd(a, b)
 
+
 def lcm(*args):
     return reduce(_lcm, args)
+
 
 def canonicalize(cycle_decomp):
     '''
@@ -167,8 +144,10 @@ def canonicalize(cycle_decomp):
 
     return new_decomp
 
+
 def commutator(x, y):
     return (x * y * x.inverse() * y.inverse())
+
 
 def test_canonicalize():
     print('utils.test_canonicalize')
@@ -178,11 +157,13 @@ def test_canonicalize():
     x = [(2, 1, 3)]
     print(canonicalize(x), x)
 
+
 def load_pkl(fname, options='rb'):
     #print('loading from pkl: {}'.format(fname))
     with open(fname, options) as f:
         res = pickle.load(f)
         return res
+
 
 def load_sparse_pkl(fname):
     th_pkl = load_pkl(fname)
@@ -190,23 +171,28 @@ def load_sparse_pkl(fname):
     new_dict = {}
 
     for perm, ydict in (th_pkl.items()):
-        sparse_re = torch.sparse.FloatTensor(ydict['idx'], ydict['real'], size).coalesce()
+        sparse_re = torch.sparse.FloatTensor(
+            ydict['idx'], ydict['real'], size).coalesce()
         new_dict[perm] = sparse_re
 
     return new_dict
 
+
 def load_irrep(prefix, alpha, parts):
-    irrep_path = os.path.join(prefix, IRREP_SUBDIR, str(alpha), '{}.pkl'.format(parts))
+    irrep_path = os.path.join(prefix, IRREP_SUBDIR,
+                              str(alpha), '{}.pkl'.format(parts))
     if os.path.exists(irrep_path):
         return load_pkl(irrep_path, 'rb')
 
     print("Could not load: {}".format(irrep_path))
     return None
 
+
 def cube2_orientations():
     for tup in product(*[(0, 1, 2) for _ in range(8)]):
         if (sum(tup) % 3 == 0):
             yield tup
+
 
 def tf(f, args=None):
     if args is None:
@@ -217,6 +203,7 @@ def tf(f, args=None):
     end = time.time()
     print('Running {} | time {:.2f}'.format(f.__name__, end - start))
     return feval
+
 
 if __name__ == '__main__':
     print(list(partitions(5)))

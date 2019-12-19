@@ -3,18 +3,17 @@ import random
 import pickle
 import sys
 import pdb
-import math
-import itertools
 import time
-from utils import check_memory, partitions
+from utils import partitions
 import numpy as np
-from young_tableau import YoungTableau, FerrersDiagram
+from young_tableau import FerrersDiagram
 from perm2 import sn
 
 # TODO: make this a tiered dict?
 YOR_CACHE = {}
 YOR_T_CACHE = {}
 CACHE = {'hit': 0, 'sparse_hit': 0}
+
 
 def cycle_to_adj_transpositions(cyc, n):
     '''
@@ -25,8 +24,9 @@ def cycle_to_adj_transpositions(cyc, n):
     TODO: can we do this without creating the mapping list
     '''
     # do bubble sort to turn this into a product of adjacent transpositions
-    cyc_map = lambda x: x if x not in cyc else cyc[(cyc.index(x) + 1) % len(cyc)]
-    perm = [ cyc_map(i) for i in range(1, n+1)]
+    def cyc_map(x):
+        return x if x not in cyc else cyc[(cyc.index(x) + 1) % len(cyc)]
+    perm = [cyc_map(i) for i in range(1, n+1)]
     factors = []
 
     for i in range(n):
@@ -36,6 +36,7 @@ def cycle_to_adj_transpositions(cyc, n):
                 factors.append((j, j+1))
 
     return list(reversed(factors))
+
 
 def perm_to_adj_transpositions(perm, n):
     '''
@@ -48,6 +49,7 @@ def perm_to_adj_transpositions(perm, n):
         all_trans.extend(cycle_to_adj_transpositions(cyc, n))
 
     return all_trans
+
 
 def yor(ferrers, permutation, use_cache=True):
     '''
@@ -84,6 +86,7 @@ def yor(ferrers, permutation, use_cache=True):
         YOR_CACHE[(ferrers.partition, permutation.tup_rep)] = res
     return res
 
+
 def yor_trans(ferrers, transposition):
     '''
     Young's seminormal form for adjacent transposition permutations.
@@ -116,6 +119,7 @@ def yor_trans(ferrers, transposition):
     YOR_T_CACHE[(ferrers, transposition)] = rep
     return rep
 
+
 def ysemi(ferrers, permutation):
     '''
     Compute the irreps of the given shape using Young's Seminormal Form
@@ -129,7 +133,7 @@ def ysemi(ferrers, permutation):
     '''
     # TODO: This is a hacky way of passing in the identity permutation
     if all(map(lambda x: len(x) <= 1, permutation.cycle_decomposition)):
-        return np.eye(len(FerrersDiagram.TABLEAUX_CACHE[ferrers.partition]) )
+        return np.eye(len(FerrersDiagram.TABLEAUX_CACHE[ferrers.partition]))
 
     res = None
     for cycle in permutation.cycle_decomposition:
@@ -145,6 +149,7 @@ def ysemi(ferrers, permutation):
                 res = y.dot(res)
 
     return res
+
 
 def ysemi_t(f, transposition):
     '''
@@ -182,6 +187,8 @@ def ysemi_t(f, transposition):
     return rep
 
 # TODO: Benchmarking function should go elsewhere
+
+
 def benchmark(n):
     '''
     Benchmark time/memory usage for generating all YoungTableau for S_8
@@ -209,7 +216,8 @@ def benchmark(n):
             sdict[perm.tup_rep] = y
 
         done = time.time() - start
-        print('Elapsed: {:.2f}mins | Done {} / {} | Partition: {}'.format(done / 60., idx, len(_partitions), p))
+        print('Elapsed: {:.2f}mins | Done {} / {} | Partition: {}'.format(
+            done / 60., idx, len(_partitions), p))
 
         with open('/local/hopan/irreps/s_{}/{}.pkl'.format(n, p), 'wb') as f:
             pickle.dump(sdict, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -218,8 +226,9 @@ def benchmark(n):
     print('Total time compute yor matrices for S_{}: {:3f}'.format(n, tend))
     print(CACHE)
 
+
 def load_yor(fname, partition):
-    #print('loading yor from: {}'.format(fname))
+    # print('loading yor from: {}'.format(fname))
     with open(fname, 'rb') as f:
         yor_dict = pickle.load(f)
         # mapping form permutation in list form to numpy array
@@ -227,6 +236,7 @@ def load_yor(fname, partition):
             YOR_CACHE[(partition, perm)] = mat
 
         return yor_dict
+
 
 if __name__ == '__main__':
     n = int(sys.argv[1])

@@ -1,13 +1,10 @@
-import os
-import resource
 import pdb
-import time
 import itertools
-import numpy as np
 from functools import total_ordering
-from utils import check_memory
 
 FERRERS_CACHE = {}
+
+
 def swap(x, i, j):
     if x == i:
         return j
@@ -16,9 +13,11 @@ def swap(x, i, j):
     else:
         return x
 
+
 def set_idx(sorted_tabs):
     for idx, tab in sorted_tabs:
         tab.set_idx(idx)
+
 
 def get_minus_partition(partition, idx):
     '''
@@ -38,8 +37,10 @@ def get_minus_partition(partition, idx):
             res.append(i)
     return tuple(res)
 
+
 class FerrersDiagram:
     TABLEAUX_CACHE = {}
+
     def __init__(self, partition):
         '''
         partition: tuple of ints
@@ -48,7 +49,7 @@ class FerrersDiagram:
         self.size = sum(partition)
 
         if partition not in FerrersDiagram.TABLEAUX_CACHE:
-            self.tableaux = self.gen_tableaux() # list of sorted young tableaux
+            self.tableaux = self.gen_tableaux()  # list of sorted young tableaux
         else:
             self.tableaux = FerrersDiagram.TABLEAUX_CACHE[partition]
         FERRERS_CACHE[partition] = self
@@ -83,7 +84,7 @@ class FerrersDiagram:
     def __repr__(self):
         rep_str = ''
         for idx, size in enumerate(self.partition):
-            rep_str += '[ ]' *size
+            rep_str += '[ ]' * size
             if idx != len(self.partition) - 1:
                 rep_str += '\n'
         return rep_str
@@ -104,9 +105,10 @@ class FerrersDiagram:
             return tabs
 
         # 1 is always the top left corner so no need to do this
-        #for p in itertools.permutations(range(2, self.size+1)):
+        # for p in itertools.permutations(range(2, self.size+1)):
         if perms is None:
-            perms = [(1, ) + p for p in itertools.permutations(range(2, self.size+1))]
+            perms = [
+                (1, ) + p for p in itertools.permutations(range(2, self.size+1))]
 
         for p in perms:
             try:
@@ -127,9 +129,11 @@ class FerrersDiagram:
     def n_tabs(self):
         return len(self.tableaux)
 
+
 def n_tabs(partition):
     fd = FerrersDiagram.from_partition(partition)
     return fd.n_tabs()
+
 
 def wreath_dim(parts):
     '''
@@ -143,6 +147,7 @@ def wreath_dim(parts):
             continue
         output *= n_tabs(p)
     return output
+
 
 def make_young_tableau(shape, vals):
     '''
@@ -165,9 +170,11 @@ def make_young_tableau(shape, vals):
         i += rowsize
     return YoungTableau(contents, vals)
 
+
 @total_ordering
 class YoungTableau:
     CACHE = {}
+
     def __init__(self, contents, vals=None):
         '''
         contents: list of tuples of the filled in ferrers blocks
@@ -217,7 +224,7 @@ class YoungTableau:
     @staticmethod
     def valid_static(shape, contents):
         i = 0
-        rows = []
+        # rows = []
         curr_row_len = shape[0]
         prev_row_len = None
         curr_row_idx = 0
@@ -301,7 +308,6 @@ class YoungTableau:
                 rep_str += '\n'
         return rep_str
 
-
     def transpose(self, transposition):
         '''
         Returns the Young Tableau you'd get by applying the transposition to this tableau if
@@ -338,12 +344,14 @@ class YoungTableau:
         row_x = self.get_row(x)
         return col_x - row_x
 
+
 def test_ferrer():
-    f = FerrersDiagram.from_partition((4, 2,2,1))
+    f = FerrersDiagram.from_partition((4, 2, 2, 1))
     print(f)
     for p in f.branch_down():
         print('---------')
         print(p)
+
 
 if __name__ == '__main__':
     test_ferrer()
